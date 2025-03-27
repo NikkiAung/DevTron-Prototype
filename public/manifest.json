@@ -1,0 +1,9 @@
+{
+    "name": "Devtron IPC Inspector",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "Modern DevTools panel to inspect Electron IPC messages",
+    "devtools_page": "devtools.html",
+    "permissions": ["storage", "scripting"]
+}
+  
