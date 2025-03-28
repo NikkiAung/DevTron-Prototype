@@ -6,20 +6,33 @@ function App() {
   const [paused, setPaused] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Simulate receiving IPC events every 2 seconds
   useEffect(() => {
     if (paused) return;
-    const interval = setInterval(() => {
-      const fakeEvent = {
-        id: Date.now(),
-        channel: Math.random() > 0.5 ? "ping" : "pong",
-        direction: Math.random() > 0.5 ? "sent" : "received",
-        data: JSON.stringify({ example: "Hello from IPC!" }),
-      };
-      setEvents((prev) => [fakeEvent, ...prev]);
-    }, 2000);
 
-    return () => clearInterval(interval); // cleanup
+    const interval = setInterval(() => {
+      // 1. Try Electron environment first
+      if (window.devtronIPC?.getLogs) {
+        const logs = window.devtronIPC.getLogs();
+        if (Array.isArray(logs)) setEvents([...logs].reverse());
+        return;
+      }
+
+      // 2. If inside Chrome DevTools panel
+      if (chrome?.devtools?.inspectedWindow) {
+        chrome.devtools.inspectedWindow.eval(
+          "window.devtronIPC.getLogs()",
+          (result, error) => {
+            if (!error && Array.isArray(result)) {
+              setEvents(result.reverse());
+            } else {
+              console.error("Devtron IPC eval error:", error);
+            }
+          }
+        );
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [paused]);
 
   return (
@@ -39,6 +52,7 @@ function App() {
             <th className="border border-gray-700 px-2 py-1">Channel</th>
             <th className="border border-gray-700 px-2 py-1">Direction</th>
             <th className="border border-gray-700 px-2 py-1">Data</th>
+            <th className="border border-gray-700 px-2 py-1">Time</th>
           </tr>
         </thead>
         <tbody>
@@ -58,6 +72,9 @@ function App() {
                 </td>
                 <td className="border border-gray-700 px-2 py-1">
                   {event.data}
+                </td>
+                <td className="border border-gray-700 px-2 py-1 text-xs">
+                  {new Date(event.time).toLocaleTimeString()}
                 </td>
               </tr>
             ))}
@@ -82,6 +99,13 @@ function App() {
         >
           💾 Export Logs
         </button>
+        <button
+          onClick={() => window.devtronIPC?.sendPing()}
+          className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-sm mb-4"
+        >
+          🚀 Send IPC "ping"
+        </button>
+        <button onClick={() => window.devtronIPC.sendPing()}>Send Ping</button>
       </div>
     </div>
   );
