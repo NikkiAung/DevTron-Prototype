@@ -5,6 +5,8 @@ function App() {
   const [events, setEvents] = useState([]);
   const [paused, setPaused] = useState(false);
   const [search, setSearch] = useState("");
+  const channels = Array.from(new Set(events.map((e) => e.channel)));
+  const [channelFilter, setChannelFilter] = useState("");
 
   useEffect(() => {
     if (paused) return;
@@ -38,13 +40,27 @@ function App() {
   return (
     <div className="bg-gray-900 text-white min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-2">Devtron IPC Inspector</h1>
-      <input
-        type="text"
-        placeholder="🔍 Filter by channel or data..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full sm:w-1/2 mb-4 p-2 rounded bg-gray-800 text-white border border-gray-700 outline-none"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="🔍 Filter by channel or data..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:w-1/2 mb-4 p-2 rounded bg-gray-800 text-white border border-gray-700 outline-none"
+        />
+        <select
+          value={channelFilter}
+          onChange={(e) => setChannelFilter(e.target.value)}
+          className="w-full sm:w-1/2 mb-4 p-2 rounded bg-gray-800 text-white border border-gray-700"
+        >
+          <option value="">Filter by Channel</option>
+          {channels.map((channel) => (
+            <option key={channel} value={channel}>
+              {channel}
+            </option>
+          ))}
+        </select>
+      </div>
       <p className="text-gray-400">Simulating fake IPC events...</p>
       <table className="mt-4 w-full text-left table-auto border-collapse border border-gray-700">
         <thead>
@@ -57,11 +73,16 @@ function App() {
         </thead>
         <tbody>
           {events
-            .filter(
-              (event) =>
+            .filter((event) => {
+              const matchesSearch =
                 event.channel.toLowerCase().includes(search.toLowerCase()) ||
-                event.data.toLowerCase().includes(search.toLowerCase())
-            )
+                event.data.toLowerCase().includes(search.toLowerCase());
+
+              const matchesChannel =
+                !channelFilter || event.channel === channelFilter;
+
+              return matchesSearch && matchesChannel;
+            })
             .map((event) => (
               <tr key={event.id}>
                 <td className="border border-gray-700 px-2 py-1">
