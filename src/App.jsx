@@ -96,7 +96,15 @@ function App() {
                 <td className="border border-gray-700 px-2 py-1">
                   {event.channel}
                 </td>
-                <td className="border border-gray-700 px-2 py-1">
+                <td
+                  className={`border border-gray-700 px-2 py-1 ${
+                    event.direction === "sent"
+                      ? "bg-blue-900"
+                      : event.direction === "received"
+                      ? "bg-green-900"
+                      : ""
+                  }`}
+                >
                   {event.direction}
                 </td>
                 <td className="border border-gray-700 px-2 py-1">
