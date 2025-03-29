@@ -18,7 +18,22 @@ ipcRenderer.send = function (channel, ...args) {
   return originalSend.call(this, channel, ...args);
 };
 
+const originalOn = ipcRenderer.on;
+ipcRenderer.on = function (channel, listener) {
+  const wrappedListener = (event, ...args) => {
+    track(channel, args, "received");
+    listener(event, ...args);
+  };
+  return originalOn.call(this, channel, wrappedListener);
+};
+
+ipcRenderer.on("pong", (...data) => {
+  // Just so we can track received 'pong' messages
+  console.log("Renderer got pong:", data);
+});
+
 contextBridge.exposeInMainWorld("devtronIPC", {
   getLogs: () => ipcLog,
+  clearLogs: () => ipcLog.splice(0, ipcLog.length),
   sendPing: () => ipcRenderer.send("ping", { msg: "Hello Main!" }),
 });

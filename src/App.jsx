@@ -82,7 +82,10 @@ function App() {
       </table>
       <div className="flex gap-1.5 mt-3">
         <button
-          onClick={() => setEvents([])}
+          onClick={() => {
+            window.devtronIPC?.clearLogs(); // Clear from preload memory
+            setEvents([]); // Clear from UI
+          }}
           className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm mb-4"
         >
           🗑️ Clear Logs
@@ -105,7 +108,6 @@ function App() {
         >
           🚀 Send IPC "ping"
         </button>
-        <button onClick={() => window.devtronIPC.sendPing()}>Send Ping</button>
       </div>
     </div>
   );
