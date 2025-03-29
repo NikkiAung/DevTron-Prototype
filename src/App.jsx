@@ -7,6 +7,7 @@ function App() {
   const [search, setSearch] = useState("");
   const channels = Array.from(new Set(events.map((e) => e.channel)));
   const [channelFilter, setChannelFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc"); // default: newest first
 
   useEffect(() => {
     if (paused) return;
@@ -72,7 +73,14 @@ function App() {
           </tr>
         </thead>
         <tbody>
-          {events
+          {[...events]
+            .sort((a, b) => {
+              if (sortOrder === "asc") {
+                return new Date(a.time) - new Date(b.time);
+              } else {
+                return new Date(b.time) - new Date(a.time);
+              }
+            })
             .filter((event) => {
               const matchesSearch =
                 event.channel.toLowerCase().includes(search.toLowerCase()) ||
@@ -128,6 +136,14 @@ function App() {
           className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-sm mb-4"
         >
           🚀 Send IPC "ping"
+        </button>
+        <button
+          onClick={() =>
+            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+          }
+          className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm mb-4 ml-2"
+        >
+          {sortOrder === "asc" ? "⬇️ Oldest First" : "⬆️ Newest First"}
         </button>
       </div>
     </div>
