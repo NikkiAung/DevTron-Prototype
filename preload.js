@@ -32,8 +32,14 @@ ipcRenderer.on("pong", (...data) => {
   console.log("Renderer got pong:", data);
 });
 
+ipcRenderer.on("OK TAL", (...data) => {
+  // Just so we can track received 'pong' messages
+  console.log("Renderer got OK TAL:", data);
+});
+
 contextBridge.exposeInMainWorld("devtronIPC", {
   getLogs: () => ipcLog,
   clearLogs: () => ipcLog.splice(0, ipcLog.length),
   sendPing: () => ipcRenderer.send("ping", { msg: "Hello Main!" }),
+  sendOkLar: () => ipcRenderer.send("OK LAR", { msg: "OK LAR Main!" }),
 });

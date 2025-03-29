@@ -10,6 +10,11 @@ function App() {
   const [sortOrder, setSortOrder] = useState("desc"); // default: newest first
 
   useEffect(() => {
+    const container = document.getElementById("log-table");
+    if (container) container.scrollTop = 0;
+  }, [events]);
+
+  useEffect(() => {
     if (paused) return;
 
     const interval = setInterval(() => {
@@ -39,7 +44,7 @@ function App() {
   }, [paused]);
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen p-4">
+    <div className="bg-gray-900 text-white min-h-screen p-4 font-mono text-sm">
       <h1 className="text-2xl font-bold mb-2">Devtron IPC Inspector</h1>
       <div className="flex gap-2">
         <input
@@ -63,60 +68,69 @@ function App() {
         </select>
       </div>
       <p className="text-gray-400">Simulating fake IPC events...</p>
-      <table className="mt-4 w-full text-left table-auto border-collapse border border-gray-700">
-        <thead>
-          <tr>
-            <th className="border border-gray-700 px-2 py-1">Channel</th>
-            <th className="border border-gray-700 px-2 py-1">Direction</th>
-            <th className="border border-gray-700 px-2 py-1">Data</th>
-            <th className="border border-gray-700 px-2 py-1">Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...events]
-            .sort((a, b) => {
-              if (sortOrder === "asc") {
-                return new Date(a.time) - new Date(b.time);
-              } else {
-                return new Date(b.time) - new Date(a.time);
-              }
-            })
-            .filter((event) => {
-              const matchesSearch =
-                event.channel.toLowerCase().includes(search.toLowerCase()) ||
-                event.data.toLowerCase().includes(search.toLowerCase());
+      <div id="log-table" className="overflow-y-scroll max-h-[60vh]">
+        <table className="mt-4 w-full text-left table-auto border-collapse border border-gray-700">
+          <thead>
+            <tr>
+              <th className="border border-gray-700 px-2 py-1">Channel</th>
+              <th className="border border-gray-700 px-2 py-1">Direction</th>
+              <th className="border border-gray-700 px-2 py-1">Data</th>
+              <th className="border border-gray-700 px-2 py-1">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...events]
+              .sort((a, b) => {
+                if (sortOrder === "asc") {
+                  return new Date(a.time) - new Date(b.time);
+                } else {
+                  return new Date(b.time) - new Date(a.time);
+                }
+              })
+              .filter((event) => {
+                const matchesSearch =
+                  event.channel.toLowerCase().includes(search.toLowerCase()) ||
+                  event.data.toLowerCase().includes(search.toLowerCase());
 
-              const matchesChannel =
-                !channelFilter || event.channel === channelFilter;
+                const matchesChannel =
+                  !channelFilter || event.channel === channelFilter;
 
-              return matchesSearch && matchesChannel;
-            })
-            .map((event) => (
-              <tr key={event.id}>
-                <td className="border border-gray-700 px-2 py-1">
-                  {event.channel}
-                </td>
-                <td
-                  className={`border border-gray-700 px-2 py-1 ${
-                    event.direction === "sent"
-                      ? "bg-blue-900"
-                      : event.direction === "received"
-                      ? "bg-green-900"
-                      : ""
-                  }`}
-                >
-                  {event.direction}
-                </td>
-                <td className="border border-gray-700 px-2 py-1">
-                  {event.data}
-                </td>
-                <td className="border border-gray-700 px-2 py-1 text-xs">
-                  {new Date(event.time).toLocaleTimeString()}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+                return matchesSearch && matchesChannel;
+              })
+              .map((event) => (
+                <tr key={event.id}>
+                  <td className="border border-gray-700 px-2 py-1">
+                    {event.channel}
+                  </td>
+                  <td
+                    className={`border border-gray-700 px-2 py-1 ${
+                      event.direction === "sent"
+                        ? "bg-blue-900"
+                        : event.direction === "received"
+                        ? "bg-green-900"
+                        : ""
+                    }`}
+                  >
+                    {event.direction}
+                  </td>
+                  <td className="border border-gray-700 px-2 py-1">
+                    {event.data.length > 100 ? (
+                      <details>
+                        <summary>{event.data.slice(0, 100)}...</summary>
+                        <pre>{event.data}</pre>
+                      </details>
+                    ) : (
+                      <pre>{event.data}</pre>
+                    )}
+                  </td>
+                  <td className="border border-gray-700 px-2 py-1 text-xs">
+                    {new Date(event.time).toLocaleTimeString()}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
       <div className="flex gap-1.5 mt-3">
         <button
           onClick={() => {
@@ -144,6 +158,12 @@ function App() {
           className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-sm mb-4"
         >
           🚀 Send IPC "ping"
+        </button>
+        <button
+          onClick={() => window.devtronIPC?.sendOkLar()}
+          className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-sm mb-4"
+        >
+          🚀 Send IPC "OK LAR"
         </button>
         <button
           onClick={() =>

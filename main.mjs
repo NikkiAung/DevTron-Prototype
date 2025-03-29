@@ -25,4 +25,9 @@ app.whenReady().then(() => {
     console.log("Received ping:", args);
     event.reply("pong", { msg: "Hey Renderer!" });
   });
+
+  ipcMain.on("OK LAR", (event, args) => {
+    console.log("Received ping:", args);
+    event.reply("OK TAL", { msg: "OK TAL Renderer!" });
+  });
 });
